@@ -95,9 +95,9 @@ angular.module('ng-context-menu', [])
         if (element) {
           $animate.leave(element, function () {
             scope.$destroy();
-            element = null;
             deferred.resolve();
           });
+          element = null;
         } else {
           deferred.resolve();
         }
