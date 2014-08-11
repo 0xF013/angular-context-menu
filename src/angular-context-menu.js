@@ -30,6 +30,7 @@ angular.module('ng-context-menu', [])
           element       = null,
           container     = null,
           loadTemplate,
+          target,
           scope;
 
       if (config.template) {
@@ -45,7 +46,9 @@ angular.module('ng-context-menu', [])
         });
       }
 
-      function open (locals, css) {
+      function open (target, locals, css) {
+        this.target = target;
+
         if (scope && locals) {
           setLocals(locals);
         }
@@ -93,10 +96,14 @@ angular.module('ng-context-menu', [])
       function close () {
         var deferred = $q.defer();
         if (element) {
-          $animate.leave(element, function () {
+          $animate.leave(element, (function (target) {
             scope.$destroy();
             deferred.resolve();
-          });
+
+            if (target) {
+              target.focus();
+            }
+          })(this.target));
           element = null;
         } else {
           deferred.resolve();
@@ -126,12 +133,11 @@ angular.module('ng-context-menu', [])
   return {
     restrict: 'A',
     link: function(scope, element, attrs) {
-      var openTarget,
-        contextMenu = $injector.get(attrs.target),
-        locals = {},
-        win = angular.element($window),
-        menuElement,
-        triggerOnEvent = attrs.triggerOnEvent || 'contextmenu';
+      var contextMenu = $injector.get(attrs.target),
+          locals = {},
+          win = angular.element($window),
+          menuElement,
+          triggerOnEvent = attrs.triggerOnEvent || 'contextmenu';
 
       /* contextMenu      is a mandatory attribute and used to bind a specific context
                           menu to the trigger event
@@ -150,7 +156,7 @@ angular.module('ng-context-menu', [])
 
       function open(event) {
         // set absolute position
-        var contextMenuPromise = contextMenu.open(locals, getCssPositionProperties(event));
+        var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionProperties(event));
 
         contextMenuPromise.then(function(element) {
           angular.element(element).trap();
@@ -159,12 +165,6 @@ angular.module('ng-context-menu', [])
 
       function close() {
         contextMenu.close();
-
-        if (openTarget) {
-          $timeout(function() {
-            openTarget.focus();
-          });
-        }
       }
 
       function getCssPositionProperties(event) {
@@ -174,7 +174,7 @@ angular.module('ng-context-menu', [])
           position.top = Math.max(event.pageY, 0) + 'px';
           position.left = Math.max(event.pageX, 0) + 'px';
         } else {
-          var bounding = angular.element(openTarget)[0].getBoundingClientRect();
+          var bounding = angular.element(event.target)[0].getBoundingClientRect();
 
           position.top = Math.max(bounding.bottom, 0) + 'px';
           position.left = Math.max(bounding.left, 0) + 'px';
@@ -184,7 +184,6 @@ angular.module('ng-context-menu', [])
       }
 
       function openContextMenu(event) {
-        openTarget = event.target;
         event.preventDefault();
         event.stopPropagation();
 
@@ -213,7 +212,7 @@ angular.module('ng-context-menu', [])
       });
 
       function handleWindowClickEvent(event) {
-        if (contextMenu.active() && openTarget && event.button !== 2) {
+        if (contextMenu.active() && event.button !== 2) {
           closeContextMenu();
         }
       }
