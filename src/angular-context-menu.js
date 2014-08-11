@@ -204,10 +204,6 @@ angular.module('ng-context-menu', [])
       });
 
       element.bind('keyup', function(event) {
-        if (contextMenu.active() && event.keyCode === 27) {
-          closeContextMenu();
-        }
-
         // Alt + Shift + F10
         if (event.keyCode === 121 && event.shiftKey && event.altKey) {
           if (!contextMenu.active()) {
@@ -226,6 +222,12 @@ angular.module('ng-context-menu', [])
       // just treat it as a contextmenu event
       win.bind('click', handleWindowClickEvent);
       win.bind(triggerOnEvent, handleWindowClickEvent);
+
+      win.bind('keyup', function() {
+        if (contextMenu.active() && event.keyCode === 27) {
+          closeContextMenu();
+        }
+      });
     }
   };
 }]);
