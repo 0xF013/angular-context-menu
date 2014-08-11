@@ -208,8 +208,8 @@ angular.module('ng-context-menu', [])
           closeContextMenu();
         }
 
-        // Shift + C
-        if (event.keyCode === 67 && event.shiftKey) {
+        // Alt + Shift + F10
+        if (event.keyCode === 121 && event.shiftKey && event.altKey) {
           if (!contextMenu.active()) {
             openContextMenu(event);
           }
