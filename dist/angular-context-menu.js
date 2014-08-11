@@ -203,13 +203,13 @@ angular.module('ng-context-menu', [])
         openContextMenu(event);
       });
 
-      win.bind('keyup', function(event) {
+      element.bind('keyup', function(event) {
         if (contextMenu.active() && event.keyCode === 27) {
           closeContextMenu();
         }
 
-        // Shift + C
-        if (event.keyCode === 67 && event.shiftKey) {
+        // Alt + Shift + F10
+        if (event.keyCode === 121 && event.shiftKey && event.altKey) {
           if (!contextMenu.active()) {
             openContextMenu(event);
           }
