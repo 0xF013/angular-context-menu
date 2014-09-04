@@ -137,7 +137,9 @@ angular.module('ng-context-menu', [])
           locals = {},
           win = angular.element($window),
           menuElement,
-          triggerOnEvent = attrs.triggerOnEvent || 'contextmenu';
+          triggerOnEvent = attrs.triggerOnEvent || 'contextmenu',
+          target,
+          pointerOffset;
 
       /* contextMenu      is a mandatory attribute and used to bind a specific context
                           menu to the trigger event
@@ -153,13 +155,37 @@ angular.module('ng-context-menu', [])
         });
       }
 
+      function getPosition(target) {
+        var targetPosition = new Object();
+        var targetElement = angular.element(target);
+        var bounding = targetElement[0].getBoundingClientRect();
+
+        targetPosition.top = bounding.top;
+        targetPosition.left = bounding.left;
+
+        return targetPosition;
+      }
+
+      function getOffset(targetPosition, pointerPosition) {
+        var pointerOffset = new Object();
+
+        pointerOffset.offsetY = pointerPosition.top - targetPosition.top;
+        pointerOffset.offsetX = pointerPosition.left - targetPosition.left;
+
+        return pointerOffset;
+      }
 
       function open(event) {
+        var targetPosition = getPosition(event.target);
+        var pointerPosition = getPositionPropertiesOfEvent(event);
         var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionPropertiesOfEvent(event));
 
         contextMenuPromise.then(function(element) {
           angular.element(element).trap();
         });
+
+        target = event.target;
+        pointerOffset = getOffset(targetPosition, pointerPosition);
       }
 
       function close() {
