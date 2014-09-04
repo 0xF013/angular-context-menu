@@ -93,6 +93,12 @@ angular.module('ng-context-menu', [])
         }
       }
 
+      function reposition (position) {
+        if (element) {
+          element.css(position);
+        }
+      }
+
       function close () {
         var deferred = $q.defer();
         if (element) {
@@ -118,7 +124,8 @@ angular.module('ng-context-menu', [])
       return {
         open: open,
         close: close,
-        active: active
+        active: active,
+        reposition: reposition
       };
 
     };
@@ -259,6 +266,20 @@ angular.module('ng-context-menu', [])
       win.bind('keyup', function() {
         if (contextMenu.active() && event.keyCode === 27) {
           closeContextMenu();
+        }
+      });
+
+      win.on('resize', function(event) {
+        if (target) {
+          var currentTargetPosition = getPosition(target);
+          var position = {
+            top: currentTargetPosition.top + pointerOffset.offsetY,
+            left: currentTargetPosition.left + pointerOffset.offsetX
+          };
+
+          contextMenu.reposition(position);
+
+          lastTargetPosition = currentTargetPosition;
         }
       });
     }
