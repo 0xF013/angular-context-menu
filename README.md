@@ -62,3 +62,12 @@ You can list locals, which are properties from the scope of the element opening 
 The context menu will get its coordinates by the position of the mouse when the context menu menu receives the (right-) click event.
 
 A demo will be linked in a while.
+
+## Release
+
+Please follow these steps to create a release for the Angular Context Menu:
+
+1. Increase the version number in [bower.json](https://github.com/finnlabs/angular-context-menu/blob/master/bower.json#L3)
+2. Run ``gulp``
+3. Commit the changes like done in [this commit](https://github.com/finnlabs/angular-context-menu/commit/7fccb0dc52fb34f6be71020f431144f0276e57e3)
+4. Create a release in GitHub (see [the documentation](https://help.github.com/articles/creating-releases) for details)
