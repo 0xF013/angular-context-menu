@@ -155,8 +155,7 @@ angular.module('ng-context-menu', [])
 
 
       function open(event) {
-        // set absolute position
-        var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionProperties(event));
+        var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionPropertiesOfEvent(event));
 
         contextMenuPromise.then(function(element) {
           angular.element(element).trap();
@@ -167,18 +166,27 @@ angular.module('ng-context-menu', [])
         contextMenu.close();
       }
 
-      function getCssPositionProperties(event) {
+      function getPositionPropertiesOfEvent(event) {
         var position = { };
 
         if (event.pageX && event.pageY) {
-          position.top = Math.max(event.pageY, 0) + 'px';
-          position.left = Math.max(event.pageX, 0) + 'px';
+          position.top = Math.max(event.pageY, 0);
+          position.left = Math.max(event.pageX, 0);
         } else {
           var bounding = angular.element(event.target)[0].getBoundingClientRect();
 
-          position.top = Math.max(bounding.bottom, 0) + 'px';
-          position.left = Math.max(bounding.left, 0) + 'px';
+          position.top = Math.max(bounding.bottom, 0);
+          position.left = Math.max(bounding.left, 0);
         }
+
+        return position;
+      }
+
+      function getCssPositionPropertiesOfEvent(event) {
+        var position = getPositionPropertiesOfEvent(event);
+
+        position.top += 'px';
+        position.left += 'px';
 
         return position;
       }
