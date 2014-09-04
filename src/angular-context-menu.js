@@ -65,7 +65,6 @@ angular.module('ng-context-menu', [])
         });
       }
 
-
       function attach (html, locals) {
         container = angular.element(config.container || document.body);
         element = angular.element(html);
@@ -90,6 +89,12 @@ angular.module('ng-context-menu', [])
       function setLocals (locals) {
         for (var prop in locals) {
          scope[prop] = locals[prop];
+        }
+      }
+
+      function reposition (position) {
+        if (element) {
+          element.css(position);
         }
       }
 
@@ -118,7 +123,8 @@ angular.module('ng-context-menu', [])
       return {
         open: open,
         close: close,
-        active: active
+        active: active,
+        reposition: reposition
       };
 
     };
@@ -137,7 +143,9 @@ angular.module('ng-context-menu', [])
           locals = {},
           win = angular.element($window),
           menuElement,
-          triggerOnEvent = attrs.triggerOnEvent || 'contextmenu';
+          triggerOnEvent = attrs.triggerOnEvent || 'contextmenu',
+          target,
+          pointerOffset;
 
       /* contextMenu      is a mandatory attribute and used to bind a specific context
                           menu to the trigger event
@@ -153,32 +161,64 @@ angular.module('ng-context-menu', [])
         });
       }
 
+      function getPosition(target) {
+        var targetPosition = {};
+        var targetElement = angular.element(target);
+        var bounding = targetElement[0].getBoundingClientRect();
+
+        targetPosition.top = bounding.top;
+        targetPosition.left = bounding.left;
+
+        return targetPosition;
+      }
+
+      function getOffset(targetPosition, pointerPosition) {
+        var pointerOffset = {};
+
+        pointerOffset.offsetY = pointerPosition.top - targetPosition.top;
+        pointerOffset.offsetX = pointerPosition.left - targetPosition.left;
+
+        return pointerOffset;
+      }
 
       function open(event) {
-        // set absolute position
-        var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionProperties(event));
+        var targetPosition = getPosition(event.target);
+        var pointerPosition = getPositionPropertiesOfEvent(event);
+        var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionPropertiesOfEvent(event));
 
         contextMenuPromise.then(function(element) {
           angular.element(element).trap();
         });
+
+        target = event.target;
+        pointerOffset = getOffset(targetPosition, pointerPosition);
       }
 
       function close() {
         contextMenu.close();
       }
 
-      function getCssPositionProperties(event) {
+      function getPositionPropertiesOfEvent(event) {
         var position = { };
 
         if (event.pageX && event.pageY) {
-          position.top = Math.max(event.pageY, 0) + 'px';
-          position.left = Math.max(event.pageX, 0) + 'px';
+          position.top = Math.max(event.pageY, 0);
+          position.left = Math.max(event.pageX, 0);
         } else {
           var bounding = angular.element(event.target)[0].getBoundingClientRect();
 
-          position.top = Math.max(bounding.bottom, 0) + 'px';
-          position.left = Math.max(bounding.left, 0) + 'px';
+          position.top = Math.max(bounding.bottom, 0);
+          position.left = Math.max(bounding.left, 0);
         }
+
+        return position;
+      }
+
+      function getCssPositionPropertiesOfEvent(event) {
+        var position = getPositionPropertiesOfEvent(event);
+
+        position.top += 'px';
+        position.left += 'px';
 
         return position;
       }
@@ -225,6 +265,20 @@ angular.module('ng-context-menu', [])
       win.bind('keyup', function() {
         if (contextMenu.active() && event.keyCode === 27) {
           closeContextMenu();
+        }
+      });
+
+      win.on('resize', function(event) {
+        if (target) {
+          var currentTargetPosition = getPosition(target);
+          var position = {
+            top: currentTargetPosition.top + pointerOffset.offsetY,
+            left: currentTargetPosition.left + pointerOffset.offsetX
+          };
+
+          contextMenu.reposition(position);
+
+          lastTargetPosition = currentTargetPosition;
         }
       });
     }
