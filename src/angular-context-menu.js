@@ -65,7 +65,6 @@ angular.module('ng-context-menu', [])
         });
       }
 
-
       function attach (html, locals) {
         container = angular.element(config.container || document.body);
         element = angular.element(html);
