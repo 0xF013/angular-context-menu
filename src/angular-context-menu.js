@@ -162,7 +162,7 @@ angular.module('ng-context-menu', [])
       }
 
       function getPosition(target) {
-        var targetPosition = new Object();
+        var targetPosition = {};
         var targetElement = angular.element(target);
         var bounding = targetElement[0].getBoundingClientRect();
 
@@ -173,7 +173,7 @@ angular.module('ng-context-menu', [])
       }
 
       function getOffset(targetPosition, pointerPosition) {
-        var pointerOffset = new Object();
+        var pointerOffset = {};
 
         pointerOffset.offsetY = pointerPosition.top - targetPosition.top;
         pointerOffset.offsetX = pointerPosition.left - targetPosition.left;
