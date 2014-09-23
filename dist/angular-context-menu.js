@@ -135,7 +135,8 @@ angular.module('ng-context-menu', [])
   '$window',
   '$parse',
   '$timeout',
-  function($injector, $window, $parse, $timeout) {
+  '$animate',
+  function($injector, $window, $parse, $timeout, $animate) {
   return {
     restrict: 'A',
     link: function(scope, element, attrs) {
@@ -188,10 +189,32 @@ angular.module('ng-context-menu', [])
 
         contextMenuPromise.then(function(element) {
           angular.element(element).trap();
+          $animate.enter(element, document.body, element, function() {
+            adjustPosition(element, pointerPosition);
+          });
         });
 
         target = event.target;
         pointerOffset = getOffset(targetPosition, pointerPosition);
+      }
+      function adjustPosition($element, pointerPosition) {
+        var win = angular.element($window);
+        var viewport = {
+          top : win.scrollTop(),
+          left : win.scrollLeft()
+        };
+        
+        viewport.right = viewport.left + win.width();
+        viewport.bottom = viewport.top + win.height();
+        var bounds = $element.offset();
+        bounds.right = bounds.left + $element.outerWidth();
+        bounds.bottom = bounds.top + $element.outerHeight();
+        if (viewport.right < bounds.right) {
+          $element.css("left", pointerPosition.left - $element.outerWidth());
+        }
+        if (viewport.bottom < bounds.bottom) {
+          $element.css("top", pointerPosition.top - $element.outerHeight());
+        }
       }
 
       function close() {
