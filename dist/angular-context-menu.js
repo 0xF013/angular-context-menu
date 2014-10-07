@@ -285,7 +285,7 @@ angular.module('ng-context-menu', [])
       win.bind('click', handleWindowClickEvent);
       win.bind(triggerOnEvent, handleWindowClickEvent);
 
-      win.bind('keyup', function() {
+      win.bind('keyup', function(event) {
         if (contextMenu.active() && event.keyCode === 27) {
           closeContextMenu();
         }
