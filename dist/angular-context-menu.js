@@ -101,14 +101,15 @@ angular.module('ng-context-menu', [])
       function close () {
         var deferred = $q.defer();
         if (element) {
-          $animate.leave(element, (function (target) {
+          $animate.leave(element, function () {
             scope.$destroy();
             deferred.resolve();
+          });
 
-            if (target) {
-              target.focus();
-            }
-          })(this.target));
+          if (this.target) {
+            this.target.focus();
+          }
+
           element = null;
         } else {
           deferred.resolve();
