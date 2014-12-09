@@ -12,12 +12,13 @@ angular.module('ng-context-menu', [])
 .factory('ngContextMenu', [
   '$q',
   '$http',
+  '$timeout',
   '$compile',
   '$templateCache',
   '$animate',
   '$rootScope',
   '$controller',
-  function($q, $http, $compile, $templateCache, $animate, $rootScope, $controller) {
+  function($q, $http, $timeout, $compile, $templateCache, $animate, $rootScope, $controller) {
 
     return function contextMenuFactory(config) {
       if (!(!config.template ^ !config.templateUrl)) {
@@ -61,6 +62,17 @@ angular.module('ng-context-menu', [])
             element.css(css);
           }
 
+          // hide the element but keep it's size and position rendered to be able
+          // to calculate on those numbers
+          element.css('visibility', 'hidden');
+          $animate.enter(element, container).then(function() {
+            $timeout(function() {
+              // wait the callstack to execute other callbacks in order to
+              // display it after all other manipulations
+              element.css('visibility', 'visible');
+            });
+          });
+
           return element;
         });
       }
@@ -71,7 +83,6 @@ angular.module('ng-context-menu', [])
         if (element.length === 0) {
          throw new Error('The template contains no elements; you need to wrap text nodes');
         }
-        $animate.enter(element, container);
 
         // create a new scope and copy locals to it
         scope = $rootScope.$new();
@@ -101,7 +112,7 @@ angular.module('ng-context-menu', [])
       function close () {
         var deferred = $q.defer();
         if (element) {
-          $animate.leave(element, function () {
+          $animate.leave(element).then(function () {
             scope.$destroy();
             deferred.resolve();
           });
@@ -190,7 +201,7 @@ angular.module('ng-context-menu', [])
 
         contextMenuPromise.then(function(element) {
           angular.element(element).trap();
-          $animate.enter(element, document.body, element, function() {
+          $animate.enter(element, document.body, element).then(function() {
             adjustPosition(element, pointerPosition);
           });
         });
@@ -199,12 +210,11 @@ angular.module('ng-context-menu', [])
         pointerOffset = getOffset(targetPosition, pointerPosition);
       }
       function adjustPosition($element, pointerPosition) {
-        var win = angular.element($window);
         var viewport = {
           top : win.scrollTop(),
           left : win.scrollLeft()
         };
-        
+
         viewport.right = viewport.left + win.width();
         viewport.bottom = viewport.top + win.height();
         var bounds = $element.offset();
