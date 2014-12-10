@@ -57,22 +57,12 @@ angular.module('ng-context-menu', [])
         return loadTemplate.then(function (html) {
           if (!element) {
             attach(html, locals);
+            $animate.enabled(false, element);
           }
           if (css) {
             element.css(css);
           }
-
-          // hide the element but keep it's size and position rendered to be able
-          // to calculate on those numbers
-          element.css('visibility', 'hidden');
-          $animate.enter(element, container).then(function() {
-            $timeout(function() {
-              // wait the callstack to execute other callbacks in order to
-              // display it after all other manipulations
-              element.css('visibility', 'visible');
-            });
-          });
-
+          element.appendTo(container);
           return element;
         });
       }
@@ -112,11 +102,9 @@ angular.module('ng-context-menu', [])
       function close () {
         var deferred = $q.defer();
         if (element) {
-          $animate.leave(element).then(function () {
-            scope.$destroy();
-            deferred.resolve();
-          });
-
+          scope.$destroy();
+          deferred.resolve();
+          element.remove();
           if (this.target) {
             this.target.focus();
           }
@@ -198,16 +186,14 @@ angular.module('ng-context-menu', [])
         var targetPosition = getPosition(event.target);
         var pointerPosition = getPositionPropertiesOfEvent(event);
         var contextMenuPromise = contextMenu.open(event.target, locals, getCssPositionPropertiesOfEvent(event));
-
-        contextMenuPromise.then(function(element) {
-          angular.element(element).trap();
-          $animate.enter(element, document.body, element).then(function() {
-            adjustPosition(element, pointerPosition);
-          });
-        });
-
         target = event.target;
         pointerOffset = getOffset(targetPosition, pointerPosition);
+        contextMenuPromise.then(function(element) {
+          angular.element(element).trap();
+          adjustPosition(element, pointerPosition);
+        });
+
+
       }
       function adjustPosition($element, pointerPosition) {
         var viewport = {
