@@ -54,15 +54,16 @@ angular.module('ng-context-menu', [])
           setLocals(locals);
         }
 
-        return loadTemplate.then(function (html) {
-          if (!element) {
-            attach(html, locals);
-            $animate.enabled(false, element);
+        return loadTemplate.then(function(html) {
+          if (element) {
+            element.remove();
           }
+          attach(html, locals);
           if (css) {
             element.css(css);
           }
           element.appendTo(container);
+          $animate.enabled(false, element);
           return element;
         });
       }
@@ -189,12 +190,16 @@ angular.module('ng-context-menu', [])
         target = event.target;
         pointerOffset = getOffset(targetPosition, pointerPosition);
         contextMenuPromise.then(function(element) {
-          angular.element(element).trap();
-          adjustPosition(element, pointerPosition);
+          element.hide();
+          $timeout(function() {
+            element.show(0, function() {
+              adjustPosition(element, pointerPosition);
+              angular.element(element).trap();
+            });
+          }, 0, false);
         });
-
-
       }
+
       function adjustPosition($element, pointerPosition) {
         var viewport = {
           top : win.scrollTop(),
