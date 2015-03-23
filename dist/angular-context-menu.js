@@ -100,13 +100,13 @@ angular.module('ng-context-menu', [])
         }
       }
 
-      function close () {
+      function close (disableFocus) {
         var deferred = $q.defer();
         if (element) {
           scope.$destroy();
           deferred.resolve();
           element.remove();
-          if (this.target) {
+          if (this.target && !disableFocus) {
             this.target.focus();
           }
 
